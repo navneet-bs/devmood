@@ -1,0 +1,23 @@
+project_id = "dratlxfygagltelqwzsj"
+
+# weekly-recap: the function itself validates the user via
+# supabase.auth.getUser() (which handles ES256 JWTs fine). We skip the
+# gateway-level JWT check because it only supports legacy HS256 — our
+# project uses the newer asymmetric (sb_publishable_/sb_secret_) keys.
+[functions.weekly-recap]
+verify_jwt = false
+
+# send-reminders: called by pg_cron; we authenticate via a shared secret in
+# the Authorization header (REMINDER_TRIGGER_SECRET), not the gateway.
+[functions.send-reminders]
+verify_jwt = false
+
+# github-oauth-callback: called by the frontend with the user's JWT. We verify
+# the JWT inside the function (supabase.auth.getUser) to side-step ES256
+# incompatibility with the gateway verifier.
+[functions.github-oauth-callback]
+verify_jwt = false
+
+# sync-github-stats: pg_cron-triggered; gated by REMINDER_TRIGGER_SECRET.
+[functions.sync-github-stats]
+verify_jwt = false

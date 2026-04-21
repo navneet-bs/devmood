@@ -1,0 +1,346 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --------------------------------------------------------------------------
+   Design tokens
+   -------------------------------------------------------------------------- */
+:root {
+  /* Surfaces — deeper than flat #0f0f0f, more editor-like */
+  --bg: #0a0a0b;
+  --bg-elevated: #121214;
+  --surface: #17171a;
+  --surface-hover: #1c1c20;
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.1);
+
+  /* Text */
+  --text: #f5f5f7;
+  --text-muted: #a1a1a8;
+  --text-dim: #6b6b75;
+  --text-faint: #4a4a52;
+
+  /* Accents */
+  --accent: #14b8a6;
+  --accent-soft: #5eead4;
+  --accent-bright: #99f6e4;
+  --accent-glow: rgba(20, 184, 166, 0.35);
+  --accent-glow-soft: rgba(20, 184, 166, 0.15);
+
+  /* Supporting warm highlight (milestones, celebrations) */
+  --warm: #fbbf24;
+  --warm-soft: rgba(251, 191, 36, 0.15);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+html {
+  font-family: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'ss01', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Tabular numbers for stats everywhere */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   Noise — subtle grain overlay to kill flatness. Fixed so it doesn't scroll.
+   -------------------------------------------------------------------------- */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* --------------------------------------------------------------------------
+   Surface utility — cards with layered depth (inset highlight + drop shadow)
+   -------------------------------------------------------------------------- */
+.surface {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0%, rgba(255, 255, 255, 0) 40%),
+    var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+    0 20px 40px -20px rgba(0, 0, 0, 0.6);
+}
+
+.surface-hover {
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.3s ease;
+}
+.surface-hover:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+    0 24px 48px -22px rgba(0, 0, 0, 0.7);
+}
+
+/* --------------------------------------------------------------------------
+   Ambient glow — teal halo behind hero elements
+   -------------------------------------------------------------------------- */
+.glow-teal {
+  position: relative;
+}
+.glow-teal::before {
+  content: '';
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(
+    circle at center,
+    var(--accent-glow-soft) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* --------------------------------------------------------------------------
+   Focus rings — consistent tactile feel on inputs/buttons
+   -------------------------------------------------------------------------- */
+.ring-focus:focus-visible,
+.ring-focus:focus-within {
+  outline: none;
+  border-color: rgba(20, 184, 166, 0.5);
+  box-shadow:
+    0 0 0 3px rgba(20, 184, 166, 0.12),
+    0 0 0 1px rgba(20, 184, 166, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   Animated background orbs — re-tuned with richer gradients
+   -------------------------------------------------------------------------- */
+.bg-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(100px);
+  opacity: 0.4;
+  will-change: transform;
+}
+
+.bg-orb--one {
+  width: 560px;
+  height: 560px;
+  background: radial-gradient(circle, #14b8a6 0%, #0d9488 70%, transparent 100%);
+  top: -200px;
+  left: -160px;
+  animation: orb-drift-one 22s ease-in-out infinite;
+}
+
+.bg-orb--two {
+  width: 640px;
+  height: 640px;
+  background: radial-gradient(circle, #0891b2 0%, #155e75 70%, transparent 100%);
+  bottom: -240px;
+  right: -180px;
+  opacity: 0.3;
+  animation: orb-drift-two 28s ease-in-out infinite;
+}
+
+.bg-orb--three {
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, #14b8a6 0%, transparent 70%);
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.22;
+  animation: orb-drift-three 34s ease-in-out infinite;
+}
+
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+
+@keyframes orb-drift-one {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(90px, 60px) scale(1.1); }
+  66%      { transform: translate(-40px, 110px) scale(0.95); }
+}
+@keyframes orb-drift-two {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(-80px, -60px) scale(1.08); }
+  66%      { transform: translate(60px, -100px) scale(0.92); }
+}
+@keyframes orb-drift-three {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-40%, -60%) scale(1.15); }
+}
+
+/* --------------------------------------------------------------------------
+   Toast slide-up
+   -------------------------------------------------------------------------- */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-slide-up {
+  animation: slide-up 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Page transitions — fade + slight rise
+   -------------------------------------------------------------------------- */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-in {
+  animation: page-in 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Staggered reveal — children rise in sequence
+   -------------------------------------------------------------------------- */
+.stagger > * {
+  opacity: 0;
+  animation: reveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.stagger > *:nth-child(1) { animation-delay: 0.04s; }
+.stagger > *:nth-child(2) { animation-delay: 0.11s; }
+.stagger > *:nth-child(3) { animation-delay: 0.18s; }
+.stagger > *:nth-child(4) { animation-delay: 0.25s; }
+.stagger > *:nth-child(5) { animation-delay: 0.32s; }
+.stagger > *:nth-child(6) { animation-delay: 0.39s; }
+.stagger > *:nth-child(7) { animation-delay: 0.46s; }
+.stagger > *:nth-child(8) { animation-delay: 0.53s; }
+
+/* --------------------------------------------------------------------------
+   Skeleton shimmer
+   -------------------------------------------------------------------------- */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* --------------------------------------------------------------------------
+   Heatmap cell pulse — used when highlighting today's cell
+   -------------------------------------------------------------------------- */
+@keyframes cell-pulse {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(20, 184, 166, 0)); }
+  50%      { filter: drop-shadow(0 0 4px rgba(20, 184, 166, 0.6)); }
+}
+
+/* --------------------------------------------------------------------------
+   Scroll reveal — fade + rise when element enters viewport
+   (paired with IntersectionObserver in JS)
+   -------------------------------------------------------------------------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0s);
+  will-change: opacity, transform;
+}
+.reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   Marquee / ticker — horizontal infinite scroll
+   -------------------------------------------------------------------------- */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: marquee 40s linear infinite;
+  will-change: transform;
+}
+
+/* --------------------------------------------------------------------------
+   Spotlight — mouse-follow radial glow behind hero
+   Uses CSS vars set from JS: --mx / --my (percentages)
+   -------------------------------------------------------------------------- */
+.spotlight {
+  background: radial-gradient(
+    600px circle at var(--mx, 50%) var(--my, 40%),
+    rgba(20, 184, 166, 0.18) 0%,
+    rgba(20, 184, 166, 0.06) 25%,
+    transparent 55%
+  );
+  transition: background 180ms ease-out;
+}
+
+/* --------------------------------------------------------------------------
+   Hair divider — precision thin teal line with glow
+   -------------------------------------------------------------------------- */
+.hair-divider {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(20, 184, 166, 0.35) 50%,
+    transparent 100%
+  );
+}
+.hair-divider::after {
+  content: '';
+  position: absolute;
+  inset: -1px 40% -1px 40%;
+  background: rgba(20, 184, 166, 0.6);
+  filter: blur(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-orb,
+  .bg-orb--one,
+  .bg-orb--two,
+  .bg-orb--three,
+  .animate-page-in,
+  .animate-slide-up,
+  .skeleton-shimmer,
+  .marquee-track,
+  .reveal,
+  .stagger > * {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .reveal { transition: none; }
+}
