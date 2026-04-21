@@ -1,8 +1,9 @@
 // Supabase Edge Function: weekly-recap
 //
-// Fetches the caller's last 7 mood_logs, sends them to xAI's Grok with a
-// forced function call (guaranteed structured output), writes the result to
-// public.recaps, and returns the stored row.
+// Fetches the caller's last 7 mood_logs, sends them to Google's Gemini via
+// its OpenAI-compatible endpoint with a forced function call (guaranteed
+// structured output), writes the result to public.recaps, and returns the
+// stored row.
 //
 // Auth: uses the user's JWT (`Authorization` header) to build the Supabase
 // client, so every read and write is enforced by the RLS policies on
@@ -10,16 +11,15 @@
 //
 // Deploy:
 //   supabase functions deploy weekly-recap
-//   supabase secrets set XAI_API_KEY=xai-...
+//   supabase secrets set GEMINI_API_KEY=AI...
 
 import OpenAI from 'npm:openai@4.67.0'
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4'
 
-// xAI's Grok 4 reasoning model — slower but much better at pattern-finding.
-// Reasoning models may produce a hidden reasoning step before the function
-// call; the OpenAI SDK surfaces only the final tool_call, so no extra handling
-// is needed on our end.
-const MODEL = 'grok-4.20-reasoning'
+// Google's Gemini 2.5 Flash via the OpenAI-compatible endpoint. Fast +
+// cheap, strong at forced function-calling. Swap to `gemini-2.5-pro` if you
+// want deeper pattern-finding at the cost of latency.
+const MODEL = 'gemini-2.5-flash'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -156,16 +156,17 @@ Deno.serve(async (req) => {
       )
     }
 
-    const apiKey = Deno.env.get('XAI_API_KEY')
-    if (!apiKey) return json({ error: 'XAI_API_KEY not configured' }, 500)
+    const apiKey = Deno.env.get('GEMINI_API_KEY')
+    if (!apiKey) return json({ error: 'GEMINI_API_KEY not configured' }, 500)
 
-    // xAI's API is OpenAI-compatible — point the OpenAI SDK at api.x.ai.
-    const grok = new OpenAI({
+    // Google's Gemini exposes an OpenAI-compatible surface — point the
+    // OpenAI SDK at generativelanguage.googleapis.com/v1beta/openai.
+    const gemini = new OpenAI({
       apiKey,
-      baseURL: 'https://api.x.ai/v1',
+      baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
     })
 
-    const completion = await grok.chat.completions.create({
+    const completion = await gemini.chat.completions.create({
       model: MODEL,
       max_tokens: 1024,
       temperature: 0.7,
@@ -248,8 +249,8 @@ Deno.serve(async (req) => {
         429,
       )
     }
-    if (status === 401) {
-      return json({ error: 'xAI API key invalid or missing' }, 500)
+    if (status === 401 || status === 403) {
+      return json({ error: 'Gemini API key invalid or missing' }, 500)
     }
 
     return json({ error: msg }, 500)
