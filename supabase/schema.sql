@@ -301,3 +301,25 @@ drop trigger if exists cleanup_stats_on_token_delete on public.github_tokens;
 create trigger cleanup_stats_on_token_delete
     before delete on public.github_tokens
     for each row execute function public.cleanup_github_stats_on_disconnect();
+
+-- Public leaderboard display data (username + avatar only — never the
+-- access_token). SECURITY DEFINER bypasses the per-owner RLS on
+-- github_tokens so all authenticated users can render other people's
+-- leaderboard rows.
+create or replace function public.get_leaderboard_profiles()
+returns table (
+    user_id           uuid,
+    github_username   text,
+    github_avatar_url text
+)
+language sql
+security definer
+stable
+set search_path = public
+as $$
+    select user_id, github_username, github_avatar_url
+    from public.github_tokens;
+$$;
+
+revoke execute on function public.get_leaderboard_profiles() from public, anon;
+grant execute on function public.get_leaderboard_profiles() to authenticated;

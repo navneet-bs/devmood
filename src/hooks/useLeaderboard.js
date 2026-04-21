@@ -34,12 +34,13 @@ export function useLeaderboard({ range = 'weekly' } = {}) {
       .from('github_stats')
       .select('user_id, date, merged_prs, reviews_given, repos_touched')
     if (since) q = q.gte('date', since)
+    // Use RPC for profiles — the direct table read is blocked by RLS
+    // (you can only see your own github_tokens row), so the RPC
+    // (SECURITY DEFINER) returns the safe display columns for everyone.
     const [{ data: stats, error: statsErr }, { data: users, error: usersErr }] =
       await Promise.all([
         q,
-        supabase
-          .from('github_tokens')
-          .select('user_id, github_username, github_avatar_url'),
+        supabase.rpc('get_leaderboard_profiles'),
       ])
 
     if (statsErr || usersErr) {
